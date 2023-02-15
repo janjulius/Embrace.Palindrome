@@ -1,0 +1,92 @@
+﻿@page "/"
+@using Embrace.Palindrome.Shared.Models;
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<PageTitle>Palindome generator</PageTitle>
+
+<h1>Palindome generator</h1>
+
+<EditForm Model="@submissionModel" OnSubmit="@HandleSubmit">
+    <p>Min word length: </p><InputNumber id="minLength" @bind-Value="submissionModel.MinLength" />
+    <p>Max word length: </p><InputNumber id="maxLength" @bind-Value="submissionModel.MaxLength" />
+    <p>Delay between generations (in ms): </p><InputNumber id="delay" @bind-Value="submissionModel.GenerationDelay" />
+    <button type="submit">Submit</button>
+</EditForm>
+
+<button @onclick="Clear" disabled="@(!IsConnected)">Clear</button>
+
+<button @onclick="Stop" disabled="@(!IsConnected)">Stop</button>
+
+
+<ul id="messagesList">
+    @foreach (var message in messages)
+    {
+            <li>@message</li>
+    }
+</ul>
+
+@code {
+
+    private Submission submissionModel = new();
+    private HubConnection? hubConnection;
+    private List<string> messages = new List<string>();
+    private string? userInput;
+    private string? messageInput;
+
+    private bool running = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/palindromehub"))
+            .Build();
+
+        hubConnection.On<string>("ReceivePalindrome", (palindrome) =>
+        {
+            var encodedMsg = $"{palindrome}";
+            messages.Add(encodedMsg);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+
+    private async Task HandleSubmit()
+    {
+        if (hubConnection != null)
+        {
+            running = true;
+            while (running)
+            {
+                await hubConnection.SendAsync("GetPalindrome", submissionModel.MinLength, submissionModel.MaxLength);
+                await Task.Delay(submissionModel.GenerationDelay);
+            }
+        }
+    }
+
+    private void Clear()
+    {
+        if(hubConnection != null)
+        {
+            messages.Clear();
+        }
+    }
+
+    private void Stop()
+    {
+        running = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+    public bool IsConnected =>
+       hubConnection?.State == HubConnectionState.Connected;
+}

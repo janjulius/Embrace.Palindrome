@@ -1,0 +1,43 @@
+﻿@page "/Palindrome"
+@using Embrace.Palindrome.Shared.Models;
+@inject Data.PalindromeService palindromeService;
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
+
+<PageTitle>Palindrome</PageTitle>
+
+<h1>Palindrome</h1>
+
+
+<EditForm Model="@submissionModel" OnSubmit="@HandleSubmit">
+    <InputNumber id="minLength" @bind-Value="submissionModel.MinLength"/>
+    <InputNumber id="maxLength" @bind-Value="submissionModel.MaxLength" />
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    private Submission submissionModel = new();
+    private bool running = false;
+    private HubConnection? hubConnection;
+
+    string palindromes = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/palindromehub"))
+            .Build();
+
+        await hubConnection.StartAsync();
+    }
+
+
+    private async Task HandleSubmit()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.SendAsync("GetPalindrome", submissionModel.MinLength, submissionModel.MaxLength);
+        }
+    }
+}
