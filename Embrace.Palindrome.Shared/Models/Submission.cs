@@ -10,6 +10,6 @@ namespace Embrace.Palindrome.Shared.Models
     {
         public int MinLength { get; set; }
         public int MaxLength { get; set; }
-        public int GenerationDelay { get; set; }
+        public int GenerationDelay { get; set; } = 1;
     }
 }

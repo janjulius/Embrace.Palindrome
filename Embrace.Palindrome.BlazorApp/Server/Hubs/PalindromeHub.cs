@@ -7,8 +7,8 @@ namespace Embrace.Palindrome.BlazorApp.Server.Hubs
     {
         public async Task GetPalindrome(int min, int max)
         {
-            PalindromeService service = new PalindromeService();
-            await Clients.All.SendAsync("ReceivePalindrome", service.Generate(min, max));
+            PalindromeService service = new();
+            await Clients.All.SendAsync(Constants.SignalRConstants.RECEIVE_PALINDROME, service.Generate(min, max));
         }
 
     }

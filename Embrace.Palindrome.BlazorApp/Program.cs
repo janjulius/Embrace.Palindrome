@@ -1,3 +1,4 @@
+using Embrace.Palindrome.BlazorApp;
 using Embrace.Palindrome.BlazorApp.Data;
 using Embrace.Palindrome.BlazorApp.Server.Hubs;
 using Microsoft.AspNetCore.Components;
@@ -35,7 +36,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.MapBlazorHub();
-app.MapHub<PalindromeHub>("/palindromehub");
+app.MapHub<PalindromeHub>(Constants.SignalRConstants.PALINDROME_HUB_URI);
 app.MapFallbackToPage("/_Host");
 
 app.Run();

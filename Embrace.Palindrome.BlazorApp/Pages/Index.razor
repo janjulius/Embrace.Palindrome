@@ -13,6 +13,8 @@
     <p>Max word length: </p><InputNumber id="maxLength" @bind-Value="submissionModel.MaxLength" />
     <p>Delay between generations (in ms): </p><InputNumber id="delay" @bind-Value="submissionModel.GenerationDelay" />
     <button type="submit">Submit</button>
+
+
 </EditForm>
 
 <button @onclick="Clear" disabled="@(!IsConnected)">Clear</button>
@@ -40,10 +42,10 @@
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/palindromehub"))
+            .WithUrl(Navigation.ToAbsoluteUri(Constants.SignalRConstants.PALINDROME_HUB_URI))
             .Build();
 
-        hubConnection.On<string>("ReceivePalindrome", (palindrome) =>
+        hubConnection.On<string>(Constants.SignalRConstants.RECEIVE_PALINDROME, (palindrome) =>
         {
             var encodedMsg = $"{palindrome}";
             messages.Add(encodedMsg);
@@ -61,8 +63,8 @@
             running = true;
             while (running)
             {
-                await hubConnection.SendAsync("GetPalindrome", submissionModel.MinLength, submissionModel.MaxLength);
-                await Task.Delay(submissionModel.GenerationDelay);
+                await hubConnection.SendAsync(Constants.SignalRConstants.GET_PALINDROME, submissionModel.MinLength, submissionModel.MaxLength);
+                await Task.Delay(submissionModel.GenerationDelay <= 0 ? 1 : submissionModel.GenerationDelay);
             }
         }
     }

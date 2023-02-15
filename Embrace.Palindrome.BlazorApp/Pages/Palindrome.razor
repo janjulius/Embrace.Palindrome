@@ -26,7 +26,7 @@
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/palindromehub"))
+            .WithUrl(Navigation.ToAbsoluteUri(Constants.SignalRConstants.PALINDROME_HUB_URI))
             .Build();
 
         await hubConnection.StartAsync();
@@ -37,7 +37,7 @@
     {
         if (hubConnection != null)
         {
-            await hubConnection.SendAsync("GetPalindrome", submissionModel.MinLength, submissionModel.MaxLength);
+            await hubConnection.SendAsync(Constants.SignalRConstants.GET_PALINDROME, submissionModel.MinLength, submissionModel.MaxLength);
         }
     }
 }
